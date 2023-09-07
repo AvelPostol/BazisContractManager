@@ -1,8 +1,5 @@
 <?php
-namespace BazisСM\Workspace\Bazis;
-
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+namespace BazisCM\Workspace\Bazis;
 
 /*
 *
@@ -22,6 +19,8 @@ class DataBase {
     private $mysqli;
     
     public function __construct() {
+        $this->Base = new \BazisCM\Workspace\Tools\Base();
+
         $this->db = 'bazis';
         $this->user = 'python';
         $this->pass = 'Deep1993';
@@ -55,42 +54,49 @@ class DataBase {
     }
 
     public function GetMaxContractNumber($p) {
-      // Создаем экземпляр класса DataBase
-      $database = new DataBase();
-      $prefix = $p['UserUID'];
 
-      // Запрос для выбора менеджера
-      $managerQuery = "SELECT name FROM bazis_managers WHERE article='$prefix'";
-      $managerResult = $database->Get(['request' => $managerQuery]);
+      try{
 
-      if (!$managerResult) {
-          echo "Ошибка при выборе менеджера";
-          exit();
-      }
+        $prefix = $p['ManagerUserField'];
+        
+        // Запрос для выбора менеджера
+        $managerQuery = "SELECT name FROM bazis_managers WHERE article='$prefix'";
+        $managerResult = $this->Get(['request' => $managerQuery]);
+  
+        if (!$managerResult) {
+            $this->Base->writeLog(['body' => 'Ошибка при выборе менеджера', 'meta' => 'DB_BAZIS']);
+            exit();
+        }
+  
+        // Получаем имя менеджера
+        $managerName = $managerResult[0]['name'];
+  
+        // Запрос для нахождения максимального числа
+        $maxNumberQuery = "
+        SELECT MAX(CAST(SUBSTRING(number, LENGTH('$prefix') + 1) AS UNSIGNED)) AS max_number
+        FROM bazis_orders
+        WHERE number LIKE '$prefix%'
+          AND manager = '$managerName'
+        ";
+        $maxNumberResult = $this->Get(['request' => $maxNumberQuery]);
+  
+        if (!$maxNumberResult) {
+            $this->Base->writeLog(['body' => 'Ошибка при нахождении максимального числаа', 'meta' => 'DB_BAZIS']);
+            exit();
+        }
+  
+        $maxNumber = $maxNumberResult[0]['max_number'];
 
-      // Получаем имя менеджера
-      $managerName = $managerResult[0]['name'];
+        return [
+            'maxNumber' => $maxNumber,
+          ];
 
-      // Запрос для нахождения максимального числа
-      $maxNumberQuery = "
-      SELECT MAX(CAST(SUBSTRING(number, LENGTH('$prefix') + 1) AS UNSIGNED)) AS max_number
-      FROM bazis_orders
-      WHERE number LIKE '$prefix%'
-        AND manager = '$managerName'
-      ";
-      $maxNumberResult = $database->Get(['request' => $maxNumberQuery]);
-
-      if (!$maxNumberResult) {
-          echo "Ошибка при нахождении максимального числа";
-          exit();
-      }
-
-      $maxNumber = $maxNumberResult[0]['max_number'];
-
-      return [
-        'maxNumber' => $maxNumber,
-        'UserUID' => $p['UserUID']
-      ];
+      }  catch (\Exception $e) { 
+        // Обработка ошибок
+        $this->Base->writeLog(['body' => 'Ошибка: ' . $e->getMessage(), 'meta' => 'DB_BAZIS']);
+        return null; // Вернуть null или другое значение, чтобы обработать ошибку в вызывающем коде
+    }
+      
 
     }
 }

@@ -1,18 +1,17 @@
 <?php
-
-$_SERVER["DOCUMENT_ROOT"] = "/mnt/data/bitrix";
-require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
+namespace BazisCM\Workspace\Bitrix;
 
   class Controller
   {
-      public static function CheckBitrix(&$arFields)
+      public static function Check($p)
       {
-        $numer = $p['maxNumber']++;
-        $ContractUID = $p['UserUID'].$p['maxNumber'];
+        $maxNumberBazis = $p['maxNumber'];
+        $numer = ++$p['maxNumber'];
+        $ContractUID = $p['ManagerUserField'].$p['maxNumber'];
       
         if (\Bitrix\Main\Loader::IncludeModule("crm")) {
           $DealInfo = \Bitrix\Crm\DealTable::GetList([
-              'select' => ['UF_CRM_1694018792723'], 
+              'select' => ['ID'], 
               'filter' => ['UF_CRM_1694018792723' => $ContractUID] 
           ]);
       
@@ -20,7 +19,7 @@ require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_be
       
           if ($firstRecord !== false) {
               $numer++;
-              $ContractUID = $p['UserUID'].$numer;
+              $ContractUID = $p['ManagerUserField'].$numer;
           } 
           else{
               $ContractUID;
@@ -30,6 +29,19 @@ require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_be
 
         return $ContractUID;
       }
+
+      public function AddContractNumber($p){
+/*
+        if (\Bitrix\Main\Loader::IncludeModule("crm")) {
+          $DealInfo = \Bitrix\Crm\DealTable::Update(
+            $p['deal']['ID'], 
+            ['UF_CRM_1694018792723' => $p['NewNumberContract']]
+          );
+        }
+*/
+      }
+
+      
   }
 
 

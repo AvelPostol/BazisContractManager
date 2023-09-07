@@ -1,18 +1,18 @@
 <?php
-namespace BazisСM\Workspace\Bazis;
-
-require_once ('DataBaseBazis.php');
+namespace BazisCM\Workspace\Bazis;
 
 class Controller {
 
     public function __construct() {
-        /*$this->tools = new Tools();
-        $this->DataBaseBazis = new DataBaseBazis();*/
+        $this->DataBaseBazis = new DataBase();
     }
 
     public function Check($p){
         
-       // $this->DataBaseBazis->Get([]);
+        $MaxBazisContract = $this->DataBaseBazis->GetMaxContractNumber($p); // maxNumber
+
+        return $MaxBazisContract;
+
     }
 
 }

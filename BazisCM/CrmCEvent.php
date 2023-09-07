@@ -1,14 +1,7 @@
 <?php
-namespace BazisСM;
-
-$_SERVER["DOCUMENT_ROOT"] = "/mnt/data/bitrix";
-require_once($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_before.php");
-
-require_once ('Main.php');
-require_once ('Workspace/Tools/Base.php');
-
-
-use BazisСM\Workspace\Tools\Base;
+namespace BazisCM;
+// подключение классов
+require_once ('head.php');
 
 use Bitrix\Main\Loader;
 use Bitrix\Main\Type;
@@ -21,46 +14,50 @@ use Bitrix\Main\Type;
 
   class CrmCEvent
   {
-      private $tools;
-      private $main;
+      private $Base;
+      private $Main;
   
-      public function __construct(Main $main, Base $tools) {
-        $this->main = $main;
-        $this->tools = $tools;
+      public function __construct() {
+        $this->Main = new \BazisCM\Main();
+        $this->Base = new \BazisCM\Workspace\Tools\Base();
       }
 
       public function GetManager($data) {
           if (\Bitrix\Main\Loader::IncludeModule("main")) {
               $managerInfo = \Bitrix\Main\UserTable::GetList([
                   'select' => ['UF_BASIS_SALON'], // поле номер группы дизайнера
-                  'filter' => ['ID' => 31] // $data['deal']['ASSIGNED_BY_ID']]
+                  'filter' => ['ID' => $data['deal']['ASSIGNED_BY_ID']] 
               ]);
-              foreach ($managerInfo as $userfield) {
-                  $this->tools->writeLog(['body' => ['body' => $userfield['ID']], 'meta' => 'users']);
-                  $this->main->Conroller(['body' => ['manager' => $userfield, 'deal' => $data['deal']]]);
+              foreach ($managerInfo as $fields) {
+                  $this->Main->Conroller(['manager' => $fields, 'deal' => $data['deal']]);
                   break;
               }
-              if(!isset($userfield['UF_BASIS_SALON'])){
-                $this->tools->writeLog(['body' => ['body' => ['не найдено совпадений по пользователям']], 'meta' => 'users']);
+              if(!isset($fields['UF_BASIS_SALON'])){
+                $this->Base->writeLog(['body' => 'не найдено совпадений по пользователям', 'meta' => 'users']);
               }
           }
+      }
+
+      
+      public function Check($arFields){
+        if (
+            ($arFields['UF_CRM_1694018792723'] == NULL) && (($arFields['CATEGORY_ID'] == '11') && ($arFields['STAGE_ID'] == 'NEW') || ($arFields['CATEGORY_ID'] == '12') && ($arFields['STAGE_ID'] == 'C12:PREPAYMENT_INVOIC'))
+        ) {
+          $instance = new CrmCEvent();
+          $manager = $instance->GetManager([
+            'deal' => $arFields,
+            ]);
+        } else {
+          $this->Base->writeLog(['body' => ['body' => $arFields], 'meta' => 'crmEvent2']);
+        }
+
       }
 
       public static function Controller(&$arFields)
       {
-           $instance = new CrmCEvent(new Main(), new Base()); // Создаем экземпляр класса CrmCEvent
-          if (
-              !isset($arFields['UF_CRM_1694018792723']) &&
-              ($arFields['CATEGORY_ID'] == '11') && ($arFields['STAGE_ID'] == 'NEW')
-              ||
-              ($arFields['CATEGORY_ID'] == '12') && ($arFields['STAGE_ID'] == 'C12:PREPAYMENT_INVOIC')
-          ) {
-               $manager = $instance->GetManager([
-                  'deal' => $arFields,
-              ]);
-          } else {
-              $instance->writeLog(['body' => ['body' => $arFields], 'meta' => 'crmEvent2']);
-          }
+
+        $instance = new CrmCEvent(); 
+        $manager = $instance->Check($arFields);
+          
       }
   }
-

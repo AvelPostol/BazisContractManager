@@ -1,14 +1,13 @@
 <?php
-namespace BazisСM;
-// подключение классов
-require_once ('Workspace/Bazis/Controller.php');
-
-use BazisСM\Workspace\Bazis\Controller;
+namespace BazisCM;
+error_reporting(E_ERROR);
+ini_set('display_errors', 1);
 
   /**
   * Контроллер связи базиса и битрикс
   *
   *  1) отработка события перехода на стадию сделки в CRM
+  *  -----------------------------------------------------
   *  2) поиск, старшего по номеру, договора в базисе
   *  3) увеличиваем значение договора на 1
   *  4) ищем в битрикс24 этот номер договора, если находим, то меняем на + 1 и проверяем еще раз
@@ -21,18 +20,25 @@ use BazisСM\Workspace\Bazis\Controller;
   * ID ПОЛЬЗОВАТЕЛЯ + ID САЛОНА + СТАРШЕЕ ЧИСЛО
   */
 
-
-  
 class Main {
 
-  public function __construct(Base $tools, Controller $BazisMain) {
-    $this->tools = $tools;
-    $this->BazisMain = $BazisMain;
+  public function __construct() {
+    $this->BazisController = new Workspace\Bazis\Controller;
+    $this->BitrixController = new Workspace\Bitrix\Controller;
+    $this->Base = new \BazisCM\Workspace\Tools\Base();
   }
 
   public function Conroller($p){
 
-  $bazis = $this->BazisMain->Check(['NumerGroupSalon' => $p['manager']['UF_']]);
+  $BazisMaxNumer = $this->BazisController->Check(['ManagerUserField' => $p['manager']['UF_BASIS_SALON']]);
+
+  if($BazisMaxNumer){
+    $NewNumberContract = $this->BitrixController->Check(['ManagerUserField' => $p['manager']['UF_BASIS_SALON'], 'maxNumber' => $BazisMaxNumer['maxNumber']]);
+  } else{
+    return null;
+  }
+  
+  $this->BitrixController->AddContractNumber(['manager' => $p['manager'], 'NewNumberContract' => $NewNumberContract, 'deal' => $p['deal']]);
 
   }
   
