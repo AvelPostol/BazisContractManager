@@ -31,14 +31,14 @@ namespace BazisCM\Workspace\Bitrix;
       }
 
       public function AddContractNumber($p){
-/*
+
         if (\Bitrix\Main\Loader::IncludeModule("crm")) {
           $DealInfo = \Bitrix\Crm\DealTable::Update(
             $p['deal']['ID'], 
             ['UF_CRM_1694018792723' => $p['NewNumberContract']]
           );
         }
-*/
+
       }
 
       

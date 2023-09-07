@@ -24,16 +24,18 @@ use Bitrix\Main\Type;
 
       public function GetManager($data) {
           if (\Bitrix\Main\Loader::IncludeModule("main")) {
+              $ManagerID = $data['deal']['ASSIGNED_BY_ID'];
               $managerInfo = \Bitrix\Main\UserTable::GetList([
                   'select' => ['UF_BASIS_SALON'], // поле номер группы дизайнера
-                  'filter' => ['ID' => $data['deal']['ASSIGNED_BY_ID']] 
+                  'filter' => ['ID' => $ManagerID] 
               ]);
+              $this->Base->writeLog(['body' => $ManagerID, 'meta' => 'user']);
               foreach ($managerInfo as $fields) {
                   $this->Main->Conroller(['manager' => $fields, 'deal' => $data['deal']]);
                   break;
               }
               if(!isset($fields['UF_BASIS_SALON'])){
-                $this->Base->writeLog(['body' => 'не найдено совпадений по пользователям', 'meta' => 'users']);
+                $this->Base->writeLog(['body' => 'не найдено совпадений по пользователям', 'meta' => 'usersExcept']);
               }
           }
       }
@@ -41,14 +43,14 @@ use Bitrix\Main\Type;
       
       public function Check($arFields){
         if (
-            ($arFields['UF_CRM_1694018792723'] == NULL) && (($arFields['CATEGORY_ID'] == '11') && ($arFields['STAGE_ID'] == 'NEW') || ($arFields['CATEGORY_ID'] == '12') && ($arFields['STAGE_ID'] == 'C12:PREPAYMENT_INVOIC'))
+            ($arFields['UF_CRM_1694018792723'] == NULL) && (($arFields['CATEGORY_ID'] == '11') && ($arFields['STAGE_ID'] == 'C11:NEW') || ($arFields['CATEGORY_ID'] == '12') && ($arFields['STAGE_ID'] == 'C12:PREPAYMENT_INVOIC'))
         ) {
           $instance = new CrmCEvent();
           $manager = $instance->GetManager([
             'deal' => $arFields,
             ]);
         } else {
-          $this->Base->writeLog(['body' => ['body' => $arFields], 'meta' => 'crmEvent2']);
+          $this->Base->writeLog(['body' => $arFields, 'meta' => 'crmEvent2']);
         }
 
       }
