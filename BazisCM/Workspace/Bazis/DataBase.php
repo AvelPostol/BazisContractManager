@@ -65,9 +65,7 @@ class DataBase {
   
         if (!$managerResult) {
             $this->Base->writeLog(['body' => 'Ошибка при выборе менеджера', 'meta' => 'DB_BAZIS']);
-            return [
-                'maxNumber' => 100,
-              ];
+            return null;
         }
   
         // Получаем имя менеджера
@@ -85,7 +83,7 @@ class DataBase {
         if (!$maxNumberResult) {
             $this->Base->writeLog(['body' => 'Ошибка при нахождении максимального числа', 'meta' => 'DB_BAZIS']);
             return [
-                'maxNumber' => 100,
+                'maxNumber' => 99,
               ];
         }
   
